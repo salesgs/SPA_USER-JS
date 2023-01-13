@@ -8,12 +8,15 @@ class UserController{
             this.onEdit();    
         }
 
+        //method
         onEdit(){
                 document.querySelector("#box-user-update .btn-cancel").addEventListener("click",e=>{
 
                         this.showPanelCreate();
 
                 });
+
+                 //method
                 this.formUpdateEl.addEventListener("submit",event=>{
                          event.preventDefault();
                         
@@ -27,32 +30,66 @@ class UserController{
                        
                         let tr = this.tableEl.rows[index];
 
-                        tr.dataset.user=JSON.stringify(values); //ID update
+                        let userOld = JSON.parse(tr.dataset.user);//PATH ANTIGO
+                        
+                        let result = Object.assign({}, userOld ,values); //SOBRESCREVENDO para userOld
 
-                        tr.innerHTML
-                        //valor colocado na tabela
-                  =`
-                  <td><img src="${values.photo}" alt="User Image" class="img-circle img-sm"></td>
-                  <td>${values.name}</td>
-                  <td>${values.email}</td>
-                  <td>${(values.admin) ?' Sim ':' Não ' }</td>  
-                  <td>${Utils.dateFormat(values.register)}</td>
-                  <td>
-                    <button type="button" class="btn btn-primary btn-edit dbtn-xs btn-flat">Editar</button>
-                    <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
-                  </td>
-           
-                  `;                   //botão editar
-                        this.addEventsTR(tr);//carregou os métodos para alteração 
-                        this.updateCount(); //nova contagem
+                      
+ 
+                      
+                       
+
+                        this.getPhoto(this.formUpdateEl).then(//retorna Promisse
+                        (content)=>{//resolve
+                                
+                                //se valor vazio
+                                if(!values.photo) result._photo = userOld._photo; //atribuindo ao campo foto um valor da foto antiga
+                                
+                                else{
+                                        result._photo = content;
+                                }
+                                tr.dataset.user=JSON.stringify(result); //ID update
+
+                                tr.innerHTML
+                               
+                                
+                          =`
+                                <td><img src="${result._photo}" alt="User Image" class="img-circle img-sm"></td>
+                                <td>${result._name}</td>
+                                <td>${result._email}</td>
+                                <td>${(result._admin) ?' Sim ':' Não ' }</td>  
+                                <td>${Utils.dateFormat(result._register)}</td>
+                                <td>
+                                <button type="button" class="btn btn-primary btn-edit dbtn-xs btn-flat">Editar</button>
+                                <button type="button" class="btn btn-danger btn-xs btn-flat">Excluir</button>
+                                </td>
+                        
+                          `;                   
+        
+                                this.addEventsTR(tr);  //method
+                                this.updateCount(); //method
+        ;
+
+                                this.formUpdateEl.reset();
+                                btn.disabled=false;
+
+                        this.formEl.reset();
+                         btn.disabled=false;
+                        this.showPanelCreate();
+
+                        },
+                        (e)=>{ //reject
+                        console.error(e);//erro capturado e jogado no console
+                        });
 
                 });
-        }33
+        }
 
-        onSubmit(){//event adicionado no formulário
+         //method
+        onSubmit(){
              this.formEl.addEventListener("submit",event=>{ 
-                event.preventDefault();//interrompe o carregamento default da SPA quando houver o submit
-    
+                event.preventDefault();
+
                 let btn = this.formEl.querySelector("[type=submit]");
                     
                 btn.disabled = true;
@@ -61,7 +98,7 @@ class UserController{
                 if(!values)return false;
                 //value dentro do getPhoto recebe um boolean
                 
-               this.getPhoto().then(//retorna Promisse
+               this.getPhoto(this.formEl).then(//retorna Promisse
                (content)=>{//resolve
                     values.photo = content;//função values recebe no atributo photo o conteúdo
                     this.addLine(values);//adiciona a função na view
@@ -74,10 +111,10 @@ class UserController{
                });
             });
         }
-         getPhoto(){
+         getPhoto(formEl){
             return new Promise((resolve,reject)=>{
                     let fileReader = new FileReader();
-                    let elements = [...this.formEl.elements].filter(item=>{
+                    let elements = [...formEl.elements].filter(item=>{
                             if(item.name === 'photo'){
                                     return item;//retorna item para a posição do array 
                             }
@@ -166,13 +203,12 @@ class UserController{
 
                                         let json = JSON.parse(tr.dataset.user);
                                        
-                                        let form = document.querySelector("#form-user-update");//dados salvos
                                       
-                                        form.dataset.trIndex =tr.sectionRowIndex; // ID do form
+                                        this.formUpdateEl.dataset.trIndex =tr.sectionRowIndex; // ID do form
         
                                         //for in     //name index //json forms   
                                         for(let name in json){                            //substitui     
-                                             let field = form.querySelector("[name=" + name.replace("_","") + "]");     
+                                             let field = this.formUpdateEl.querySelector("[name=" + name.replace("_","") + "]");     
                                                         if(field){        
                                                                 switch(field.type){
                                                                         case 'file':
@@ -180,7 +216,7 @@ class UserController{
                                                                          break;
         
                                                                         case 'radio':
-                                                                                 field = form.querySelector("[name=" + name.replace("_","") + "][value="+json[name]+"]");     
+                                                                                 field = this.formUpdateEl.querySelector("[name=" + name.replace("_","") + "][value="+json[name]+"]");     
                                                                                  field.checked=true;
                                                                          break;
                                                                          case 'checkbox':
@@ -192,16 +228,15 @@ class UserController{
                                         
                                                         }
                                         }
+                                        this.formUpdateEl.querySelector(".photo").src=json._photo; //NEW LINE
                                         this.showPanelUpdate();
                                 }) 
                 }
 
                 //invocado dentro do onEdit
                 showPanelCreate(){
-
                                 document.querySelector("#box-user-create").style.display="block";
-                                document.querySelector("#box-user-update").style.display="none";
-                                
+                                document.querySelector("#box-user-update").style.display="none";           
                 }
 
                 //invocado dentro do addLine
