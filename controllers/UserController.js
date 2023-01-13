@@ -35,10 +35,6 @@ class UserController{
                         let result = Object.assign({}, userOld ,values); //SOBRESCREVENDO para userOld
 
                       
- 
-                      
-                       
-
                         this.getPhoto(this.formUpdateEl).then(//retorna Promisse
                         (content)=>{//resolve
                                 
@@ -48,7 +44,7 @@ class UserController{
                                 else{
                                         result._photo = content;
                                 }
-                                tr.dataset.user=JSON.stringify(result); //ID update
+                                tr.dataset.user=JSON.stringify(result);  //STRING 
 
                                 tr.innerHTML
                                
@@ -73,8 +69,6 @@ class UserController{
                                 this.formUpdateEl.reset();
                                 btn.disabled=false;
 
-                        this.formEl.reset();
-                         btn.disabled=false;
                         this.showPanelCreate();
 
                         },
